@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123456
+      POSTGRES_DB: outbox
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  nats:
+    image: nats:2.10
+    container_name: nats
+    restart: always
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+
+volumes:
+  postgres_data:
