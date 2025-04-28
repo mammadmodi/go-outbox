@@ -1,0 +1,22 @@
+# Database connection string
+database_dsn = "postgres://admin:admin123456@localhost:5432/outbox?sslmode=disable"
+
+# NATS broker URL
+nats_url = "nats://localhost:4222"
+
+# Advisory lock ID for leader election (any int64)
+advisory_lock = 42
+
+[relay]
+# How often to poll the database (in milliseconds)
+poll_interval = "3000ms"
+
+# How many messages to fetch and try to dispatch per cycle
+batch_size = 100
+
+# How many times to retry sending a message before giving up
+max_attempts = 3
+
+# Logging configuration
+level = "debug"
+format = "text"
