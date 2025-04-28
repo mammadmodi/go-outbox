@@ -73,7 +73,7 @@ func (s *SQLStorage) InitOutboxTable(ctx context.Context) error {
 func (s *SQLStorage) InsertMessage(ctx context.Context, tx *sql.Tx, msg StorageRecord) error {
 	query := `
         INSERT INTO outbox (id, event_type, aggregate_type, aggregate_id, data, topic, created_at, status, attempts)
-        VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7, 0)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, 0)
     `
 
 	if msg.ID == uuid.Nil {
