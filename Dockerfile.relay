@@ -1,0 +1,24 @@
+FROM golang:1.23-alpine as builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+WORKDIR /app/cmd/outbox-relay
+RUN go build -o /outbox-relay
+
+FROM alpine:latest
+
+WORKDIR /app/
+
+COPY --from=builder /outbox-relay .
+
+COPY ./config/relay.toml ./config/relay.toml
+
+ENTRYPOINT ["./outbox-relay"]
+
+CMD ["outbox-relay"]
