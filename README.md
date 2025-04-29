@@ -45,8 +45,8 @@ make sample-logs
 
 Once the setup is up and running, you can then trigger some events using the following curl commands to create/verify users.
 
+Create a user through sample server 1
 ```shell
-# Create a user through sample server 1
 curl --location '127.0.0.1:8081/users' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -56,8 +56,8 @@ curl --location '127.0.0.1:8081/users' \
 '
 ```
 
+Verify a user through sample server 2
 ```shell
-# Verify a user through sample server 2
 curl --location --request PATCH '127.0.0.1:8082/users/1/verify'
 ```
 
