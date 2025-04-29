@@ -12,7 +12,7 @@ test:
 
 # Build the Docker image
 docker-build:
-	docker build -t $(APP_NAME):latest -f Dockerfile.relay .
+	docker build -t $(APP_NAME):latest -f Dockerfile-relay .
 
 # Start Docker Compose
 up:

@@ -1,0 +1,22 @@
+FROM golang:1.23-alpine as builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+WORKDIR /app/cmd/nats-consumer
+RUN go build -o /nats-consumer
+
+FROM alpine:latest
+
+WORKDIR /app/
+
+COPY --from=builder /nats-consumer .
+
+ENTRYPOINT ["./nats-consumer"]
+
+CMD ["nats-consumer"]
