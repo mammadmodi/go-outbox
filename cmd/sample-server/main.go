@@ -13,9 +13,9 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/nats-io/nats.go"
 
+	"github.com/mammadmodi/go-outbox/cmd/logging"
 	"github.com/mammadmodi/go-outbox/cmd/sample-server/app"
 	"github.com/mammadmodi/go-outbox/outbox"
-	"github.com/mammadmodi/go-outbox/pkg/logging"
 )
 
 func main() {
