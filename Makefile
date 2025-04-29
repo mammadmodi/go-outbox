@@ -22,6 +22,9 @@ docker-build: build
 up:
 	docker-compose -f $(DOCKER_COMPOSE_FILE) up -d
 
+sample-logs:
+	docker-compose -f $(DOCKER_COMPOSE_FILE) logs -f sample-server-1 sample-server-2 sample-consumer
+
 # Stop Docker Compose
 down:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) down
+	docker-compose -f $(DOCKER_COMPOSE_FILE) down --volumes --remove-orphans

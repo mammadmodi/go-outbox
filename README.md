@@ -40,7 +40,7 @@ This command launches the following services in the background:
 
 At the meanwhile, in another terminal, you can listen on the logs to track the events and messages being sent/received to/by the NATS server
 ```shell
-docker-compose logs -f sample-server-1 sample-server-2 sample-consumer
+make sample-logs
 ```
 
 Once the setup is up and running, you can then trigger some events using the following curl commands to create/verify users.
@@ -68,6 +68,11 @@ if the sample-server-1 is the leader then stop it by:
 
 ```shell
 docker-compose stop sample-server-1
+```
+
+And do not forget to cleanup the docker-compose artifacts at the end:
+```shell
+make down
 ```
 
 ### As a standalone Relay application
