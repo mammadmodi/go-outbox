@@ -84,9 +84,7 @@ func (a *App) createUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() {
-		if err = tx.Rollback(); err != nil {
-			a.logger.Error("failed to rollback transaction", slog.Any("error", err))
-		}
+		_ = tx.Rollback()
 	}()
 
 	var userID int64
@@ -139,9 +137,7 @@ func (a *App) verifyUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() {
-		if err = tx.Rollback(); err != nil {
-			a.logger.Error("failed to rollback transaction", slog.Any("error", err))
-		}
+		_ = tx.Rollback()
 	}()
 
 	// Check if user exists and is not already verified
