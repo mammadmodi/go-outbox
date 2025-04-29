@@ -11,7 +11,7 @@ test:
 	go test ./... -v
 
 # Build the Docker image
-docker-build:
+docker-build: build-relay
 	docker build -t $(APP_NAME):latest -f Dockerfile-relay .
 
 # Start Docker Compose
