@@ -3,7 +3,7 @@ APP_NAME=outbox-relay
 DOCKER_COMPOSE_FILE=docker-compose.yml
 
 # Build the Go application
-build-relay:
+build:
 	go build -o $(APP_NAME) cmd/outbox-relay/main.go
 
 # Run tests
@@ -11,7 +11,7 @@ test:
 	go test ./... -v
 
 # Build the Docker image
-docker-build: build-relay
+docker-build: build
 	docker build -t $(APP_NAME):latest -f Dockerfile-relay .
 
 # Start Docker Compose
