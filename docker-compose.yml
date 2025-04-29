@@ -58,11 +58,11 @@ services:
     volumes:
       - ./config:/app/config
 
-  nats-consumer:
+  sample-consumer:
     build:
       context: .
-      dockerfile: Dockerfile-nats-consumer
-    container_name: nats-consumer
+      dockerfile: Dockerfile-sample-consumer
+    container_name: sample-consumer
     restart: always
     depends_on:
       - nats

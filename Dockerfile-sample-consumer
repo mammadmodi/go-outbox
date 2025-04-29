@@ -1,0 +1,22 @@
+FROM golang:1.23-alpine as builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+WORKDIR /app/cmd/sample-consumer
+RUN go build -o /sample-consumer
+
+FROM alpine:latest
+
+WORKDIR /app/
+
+COPY --from=builder /sample-consumer .
+
+ENTRYPOINT ["./sample-consumer"]
+
+CMD ["sample-consumer"]

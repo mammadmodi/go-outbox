@@ -40,7 +40,7 @@ This command launches the following services in the background:
 
 At the meanwhile, in another terminal, you can listen on the logs to track the events and messages being sent/received to/by the NATS server
 ```shell
-docker-compose logs -f sample-server-1 sample-server-2 nats-consumer
+docker-compose logs -f sample-server-1 sample-server-2 sample-consumer
 ```
 
 Once the setup is up and running, you can then trigger some events using the following curl commands to create/verify users.
