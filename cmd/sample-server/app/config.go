@@ -15,8 +15,8 @@ type Config struct {
 	DatabaseDSN  string             `mapstructure:"database_dsn"`
 	NatsURL      string             `mapstructure:"nats_url"`
 	AdvisoryLock int64              `mapstructure:"advisory_lock"`
-	LogLevel     string             `mapstructure:"log_level"`
-	LogFormat    string             `mapstructure:"log_format"`
+	LogLevel     string             `mapstructure:"logging_level"`
+	LogFormat    string             `mapstructure:"logging_format"`
 	Relay        outbox.RelayConfig `mapstructure:"relay"`
 }
 
@@ -41,19 +41,18 @@ func NewConfig(cfgPath string) (*Config, error) {
 	_ = v.BindEnv("database_dsn")
 	_ = v.BindEnv("nats_url")
 	_ = v.BindEnv("advisory_lock")
-	_ = v.BindEnv("log_level")
-	_ = v.BindEnv("log_format")
+	_ = v.BindEnv("logging_level")
+	_ = v.BindEnv("logging_format")
 	_ = v.BindEnv("advisory_lock")
 	_ = v.BindEnv("relay.poll_interval_ms")
 	_ = v.BindEnv("relay.batch_size")
-	_ = v.BindEnv("log_level")
 
 	// Default values
 	v.SetDefault("server_port", ":8080")
 	v.SetDefault("relay.poll_interval", "1000ms") // 1 second
 	v.SetDefault("relay.batch_size", 100)
-	v.SetDefault("log_level", "info")
-	v.SetDefault("log_format", "text")
+	v.SetDefault("logging_level", "info")
+	v.SetDefault("logging_format", "text")
 
 	// Unmarshal into struct
 	var cfg Config

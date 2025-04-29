@@ -20,5 +20,5 @@ batch_size = 100
 max_attempts = 3
 
 # Logging configuration
-level = "debug"
-format = "text"
+logging_level = "debug"
+logging_format = "text"
