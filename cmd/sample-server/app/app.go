@@ -40,7 +40,7 @@ func (a *App) Init(ctx context.Context) error {
 
 	router := http.NewServeMux()
 	router.HandleFunc("POST /users", a.createUserHandler)
-	router.HandleFunc("PUT /users/", a.updateUserHandler) // expects ID at the end
+	router.HandleFunc("PATCH /users/", a.verifyUserHandler) // will route like /users/{id}/verify
 
 	a.server = &http.Server{
 		Addr:    ":" + a.port,
@@ -84,7 +84,7 @@ func (a *App) createUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var userID int64
 	err = tx.QueryRowContext(ctx,
-		"INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id",
+		"INSERT INTO users (name, email, verified) VALUES ($1, $2, false) RETURNING id",
 		req.Name, req.Email,
 	).Scan(&userID)
 	if err != nil {
@@ -114,27 +114,17 @@ func (a *App) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{"id": userID})
 }
 
-// updateUserHandler updates a user and stores an update event in the outbox.
-func (a *App) updateUserHandler(w http.ResponseWriter, r *http.Request) {
+// verifyUserHandler verifies a user and stores an event in the outbox.
+func (a *App) verifyUserHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// Expect URL like /users/{id}/verify
 	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) != 3 || parts[2] == "" {
-		http.Error(w, "invalid user ID in path", http.StatusBadRequest)
+	if len(parts) != 4 || parts[3] != "verify" {
+		http.Error(w, "invalid path", http.StatusBadRequest)
 		return
 	}
 	userID := parts[2]
-
-	type UpdateUserRequest struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
-	}
-
-	var req UpdateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
-		return
-	}
 
 	tx, err := a.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -143,30 +133,38 @@ func (a *App) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	res, err := tx.ExecContext(ctx,
-		"UPDATE users SET name = $1, email = $2, updated_at = now() WHERE id = $3",
-		req.Name, req.Email, userID,
-	)
+	// Check if user exists and is not already verified
+	var verified bool
+	err = tx.QueryRowContext(ctx, "SELECT verified FROM users WHERE id = $1", userID).Scan(&verified)
+	if err == sql.ErrNoRows {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, "failed to query user", http.StatusInternalServerError)
+		return
+	}
+	if verified {
+		http.Error(w, "user already verified", http.StatusConflict)
+		return
+	}
+
+	// Mark as verified
+	_, err = tx.ExecContext(ctx, `
+		UPDATE users
+		SET verified = true, updated_at = now()
+		WHERE id = $1
+	`, userID)
 	if err != nil {
 		http.Error(w, "failed to update user", http.StatusInternalServerError)
 		return
 	}
 
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		http.Error(w, "failed to fetch update result", http.StatusInternalServerError)
-		return
-	}
-	if rowsAffected == 0 {
-		http.Error(w, "user not found", http.StatusNotFound)
-		return
-	}
-
+	// Insert verification event
 	event := outbox.StorageRecord{
-		EventType:     "UserUpdated",
+		EventType:     "UserVerified",
 		AggregateType: "User",
 		AggregateID:   userID,
-		Data:          []byte(fmt.Sprintf(`{"id":%s,"name":"%s","email":"%s"}`, userID, req.Name, req.Email)),
+		Data:          []byte(fmt.Sprintf(`{"id":%s,"verified":true}`, userID)),
 		Topic:         "users",
 	}
 
@@ -181,7 +179,7 @@ func (a *App) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{"id": userID})
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "verified"})
 }
 
 func (a *App) initUsersTable(ctx context.Context) error {
@@ -190,10 +188,12 @@ func (a *App) initUsersTable(ctx context.Context) error {
 		id SERIAL PRIMARY KEY,
 		name TEXT NOT NULL,
 		email TEXT NOT NULL,
+		verified BOOLEAN NOT NULL DEFAULT FALSE,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 	);
 	`
+
 	if _, err := a.db.ExecContext(ctx, query); err != nil {
 		return fmt.Errorf("failed to initialize users table: %w", err)
 	}
