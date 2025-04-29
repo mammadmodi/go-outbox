@@ -45,7 +45,7 @@ make sample-logs
 
 Once the setup is up and running, you can then trigger some events using the following curl commands to create/verify users.
 
-Create a user through sample server 1
+Create a user through sample server 1 to trigger a `UserCreated` event:
 ```shell
 curl --location '127.0.0.1:8081/users' \
 --header 'Content-Type: application/json' \
@@ -56,7 +56,7 @@ curl --location '127.0.0.1:8081/users' \
 '
 ```
 
-Verify a user through sample server 2
+Verify a user through sample server 2 to trigger a `UserVerified` event:
 ```shell
 curl --location --request PATCH '127.0.0.1:8082/users/1/verify'
 ```
@@ -69,6 +69,9 @@ if the sample-server-1 is the leader then stop it by:
 ```shell
 docker-compose stop sample-server-1
 ```
+
+Now you can see in the log that the other sample server takes the leadership and sends the events.
+
 
 And do not forget to cleanup the docker-compose artifacts at the end:
 ```shell
@@ -148,9 +151,10 @@ For a full application integration you can refer to the usage in the [sample-ser
     // Initialise the relay dependencies.
     relay := outbox.NewRelay(storage, publisher, elector, appCfg.Relay, logger)
   
+    // Start the relay in background. 
     go relay.Start(ctx) // non-blocking: runs in the background
-	
-	// Stop the relay process when your application is shutting down.
+
+    // Stop the relay process when your application is shutting down.
     relay.Shutdown(ctx) // optional: manual shutdown call if needed
 ```
 
