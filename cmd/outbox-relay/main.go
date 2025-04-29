@@ -11,8 +11,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/nats-io/nats.go"
 
-	"github.com/mammadmodi/go-outbox/cmd/logging"
 	"github.com/mammadmodi/go-outbox/cmd/outbox-relay/config"
+	"github.com/mammadmodi/go-outbox/cmd/pkg/logging"
 	"github.com/mammadmodi/go-outbox/outbox"
 )
 

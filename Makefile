@@ -10,6 +10,10 @@ build:
 test:
 	go test ./... -v
 
+# Run golangci-lint
+lint:
+	golangci-lint run
+
 # Build the Docker image
 docker-build: build
 	docker build -t $(APP_NAME):latest -f Dockerfile-relay .

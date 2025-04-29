@@ -13,7 +13,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/nats-io/nats.go"
 
-	"github.com/mammadmodi/go-outbox/cmd/logging"
+	"github.com/mammadmodi/go-outbox/cmd/pkg/logging"
 	"github.com/mammadmodi/go-outbox/cmd/sample-server/app"
 	"github.com/mammadmodi/go-outbox/outbox"
 )
@@ -76,7 +76,7 @@ func main() {
 	elector := outbox.NewLeaseElector(db, appCfg.AdvisoryLock, logger)
 	relay := outbox.NewRelay(storage, publisher, elector, appCfg.Relay, logger)
 
-	sampleServer := app.NewApp(storage, db, appCfg.ServerPort)
+	sampleServer := app.NewApp(storage, db, appCfg.ServerPort, logger)
 	if err = sampleServer.Init(ctx); err != nil {
 		logger.Error("failed to initialize sample server", slog.Any("error", err))
 		os.Exit(1)

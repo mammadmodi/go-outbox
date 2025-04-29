@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -17,14 +18,16 @@ type App struct {
 	outboxStorage *outbox.SQLStorage
 	server        *http.Server
 	port          string
+	logger        *slog.Logger
 }
 
 // NewApp creates a new App instance.
-func NewApp(storage *outbox.SQLStorage, db *sql.DB, port string) *App {
+func NewApp(storage *outbox.SQLStorage, db *sql.DB, port string, logger *slog.Logger) *App {
 	return &App{
 		outboxStorage: storage,
 		db:            db,
 		port:          port,
+		logger:        logger,
 	}
 }
 
@@ -80,7 +83,11 @@ func (a *App) createUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to start transaction", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err = tx.Rollback(); err != nil {
+			a.logger.Error("failed to rollback transaction", slog.Any("error", err))
+		}
+	}()
 
 	var userID int64
 	err = tx.QueryRowContext(ctx,
@@ -131,7 +138,11 @@ func (a *App) verifyUserHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to start transaction", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err = tx.Rollback(); err != nil {
+			a.logger.Error("failed to rollback transaction", slog.Any("error", err))
+		}
+	}()
 
 	// Check if user exists and is not already verified
 	var verified bool

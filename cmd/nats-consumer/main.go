@@ -22,7 +22,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to NATS: %v", err)
 	}
-	defer nc.Drain()
+	defer func() {
+		if err = nc.Drain(); err != nil {
+			log.Fatalf("Failed to drain NATS connection: %v", err)
+		}
+	}()
 
 	_, err = nc.Subscribe(topic, func(m *nats.Msg) {
 		log.Printf("Received a message on topic [%s]: %s\n", m.Subject, string(m.Data))
